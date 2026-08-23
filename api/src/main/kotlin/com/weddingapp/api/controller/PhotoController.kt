@@ -88,7 +88,10 @@ class PhotoController(
         @PathVariable id: UUID
     ): ResponseEntity<Resource> {
 
-        val storedPhoto = photoService.getFile(id)
+        val storedPhoto = photoService.getFile(
+            id = id,
+            isAdmin = false
+        )
 
         val resource = UrlResource(
             storedPhoto.path.toUri()

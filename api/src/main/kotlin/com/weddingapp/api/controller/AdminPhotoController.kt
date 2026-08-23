@@ -3,8 +3,12 @@ package com.weddingapp.api.controller
 import com.weddingapp.api.dto.photo.PhotoResponse
 import com.weddingapp.api.service.PhotoService
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.core.io.Resource
+import org.springframework.core.io.UrlResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import java.util.UUID
 
 @RestController
@@ -60,5 +64,33 @@ class AdminPhotoController(
                 baseUrl
             )
         )
+    }
+
+    @GetMapping("/{id}/file")
+    fun getFile(
+        @PathVariable id: UUID
+    ): ResponseEntity<Resource> {
+
+        val storedPhoto = photoService.getFile(
+            id = id,
+            isAdmin = true
+        )
+
+        val resource = UrlResource(
+            storedPhoto.path.toUri()
+        )
+
+        return ResponseEntity
+            .ok()
+            .contentType(
+                MediaType.parseMediaType(
+                    storedPhoto.contentType
+                )
+            )
+            .header(
+                HttpHeaders.CONTENT_DISPOSITION,
+                "inline"
+            )
+            .body(resource)
     }
 }

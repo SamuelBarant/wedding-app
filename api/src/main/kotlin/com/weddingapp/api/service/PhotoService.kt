@@ -3,6 +3,7 @@ package com.weddingapp.api.service
 import com.weddingapp.api.dto.photo.PhotoResponse
 import com.weddingapp.api.entity.Photo
 import com.weddingapp.api.entity.PhotoStatus
+import com.weddingapp.api.exception.PhotoNotAvailableException
 import com.weddingapp.api.repository.ChallengeRepository
 import com.weddingapp.api.repository.PhotoRepository
 import com.weddingapp.api.repository.UserRepository
@@ -171,10 +172,16 @@ class PhotoService(
     }
 
     fun getFile(
-        id: UUID
+        id: UUID,
+        isAdmin: Boolean = false
     ): StoredPhoto {
 
         val photo = getPhotoEntity(id)
+
+        // Un usuario normal solo puede ver fotos aprobadas
+        if (!isAdmin && photo.status != PhotoStatus.APPROVED) {
+            throw PhotoNotAvailableException()
+        }
 
         val path = fileStorage.load(
             photo.storedFilename
