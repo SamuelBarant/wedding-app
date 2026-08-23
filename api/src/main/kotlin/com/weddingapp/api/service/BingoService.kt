@@ -2,19 +2,15 @@ package com.weddingapp.api.service
 
 import com.weddingapp.api.dto.bingo.BingoChallengeResponse
 import com.weddingapp.api.dto.bingo.BingoResponse
-import com.weddingapp.api.repository.ChallengeRepository
 import com.weddingapp.api.repository.UserChallengeRepository
 import com.weddingapp.api.repository.UserRepository
 import org.springframework.stereotype.Service
 import java.util.UUID
-import kotlin.text.get
 
 @Service
 class BingoService(
 
     private val userRepository: UserRepository,
-
-    private val challengeRepository: ChallengeRepository,
 
     private val userChallengeRepository: UserChallengeRepository
 
@@ -24,6 +20,7 @@ class BingoService(
         userId: UUID
     ): BingoResponse {
 
+        // Comprobar que el usuario existe
         val user = userRepository
             .findById(userId)
             .orElseThrow {
@@ -32,55 +29,58 @@ class BingoService(
                 )
             }
 
-        val challenges = challengeRepository
-            .findAllByOrderByIdAsc()
-
+        // Obtener SOLO los retos asignados a este usuario
         val userChallenges =
             userChallengeRepository
-                .findByUserIdOrderByChallengeId(user.id!!)
+                .findByUserId(user.id!!)
 
-        val userChallengeMap =
-            userChallenges.associateBy {
-                it.challenge.id
+        // Convertir UserChallenge -> BingoChallengeResponse
+        val bingoChallenges =
+            userChallenges.map { userChallenge ->
+
+                val challenge =
+                    userChallenge.challenge
+
+                BingoChallengeResponse(
+                    challengeId = challenge.id!!,
+                    title = challenge.title,
+                    description = challenge.description,
+                    points = challenge.points,
+                    completed = userChallenge.completed,
+                    completedAt = userChallenge
+                        .completedAt
+                        ?.toString()
+                )
             }
 
-        val bingoChallenges = challenges.map { challenge ->
-
-            val progress =
-                userChallengeMap[challenge.id]
-
-            BingoChallengeResponse(
-                challengeId = challenge.id!!,
-                title = challenge.title,
-                description = challenge.description,
-                points = challenge.points,
-                completed = progress?.completed ?: false,
-                completedAt = progress
-                    ?.completedAt
-                    ?.toString()
-            )
-        }
-
+        // Retos completados
         val completed =
-            bingoChallenges.count {
+            userChallenges.count {
                 it.completed
             }
 
+        // Puntos obtenidos
         val totalPoints =
             userChallenges
                 .filter { it.completed }
-                .sumOf { it.pointsAwarded }
+                .sumOf {
+                    it.pointsAwarded
+                }
 
+        // Progreso sobre los retos asignados
         val progress =
-            if (challenges.isEmpty()) {
+            if (userChallenges.isEmpty()) {
                 0
             } else {
-                ((completed.toDouble() /
-                        challenges.size) * 100).toInt()
+                (
+                        completed.toDouble() /
+                                userChallenges.size *
+                                100
+                        ).toInt()
             }
 
         return BingoResponse(
-            totalChallenges = challenges.size,
+            totalChallenges = userChallenges.size,
             completedChallenges = completed,
             totalPoints = totalPoints,
             progress = progress,

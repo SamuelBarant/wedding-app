@@ -17,29 +17,28 @@ import java.util.UUID
 class UserChallenge(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue
     var id: UUID? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     var user: User,
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "challenge_id", nullable = false)
     var challenge: Challenge,
 
     @Column(nullable = false)
     var completed: Boolean = false,
 
-    @Column(name = "completed_at")
     var completedAt: LocalDateTime? = null,
 
-    @Column(name = "points_awarded", nullable = false)
+    @Column(nullable = false)
     var pointsAwarded: Int = 0,
 
-    @Column(name = "created_at", nullable = false)
+    @Column(nullable = false)
     var createdAt: LocalDateTime = LocalDateTime.now(),
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now()
 )

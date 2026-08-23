@@ -1,9 +1,11 @@
 package com.weddingapp.api.controller
 
+import com.weddingapp.api.dto.user.CreateUserRequest
 import com.weddingapp.api.dto.user.UpdateUserRequest
 import com.weddingapp.api.dto.user.UserResponse
 import com.weddingapp.api.service.UserService
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
@@ -39,5 +41,15 @@ class UserController(
         return ResponseEntity.ok(
             userService.updateUser(id, request)
         )
+    }
+
+    @PostMapping
+    fun createUser(
+        @RequestBody request: CreateUserRequest
+    ): ResponseEntity<UserResponse> {
+
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(userService.createUser(request))
     }
 }
