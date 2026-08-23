@@ -37,16 +37,41 @@ VALUES
         5,
         'local_florist',
         TRUE
+    ),
+    (
+        'Foto con los novios',
+        'Consigue una foto junto a los novios',
+        50,
+        'local_florist',
+        true
+    ),
+    (
+        'Alguien bailando',
+        'Haz una foto de alguien bailando',
+        25,
+        'local_florist',
+        true
+    ),
+    (
+        'Un brindis',
+        'Captura un brindis durante la celebración',
+        30,
+        'local_florist',
+        true
+    ),
+    (
+        'Alguien riendo',
+        'Consigue una foto de alguien riéndose',
+        20,
+        'local_florist',
+        true
     );
 
 INSERT INTO users (
-    id,
     name,
     role,
     points
-)
-VALUES (
-   '11111111-1111-1111-1111-111111111111',
+) VALUES (
    'Samuel',
    'GUEST',
    0

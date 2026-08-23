@@ -3,12 +3,15 @@ package com.weddingapp.api.service
 import com.weddingapp.api.dto.photo.PhotoResponse
 import com.weddingapp.api.entity.Photo
 import com.weddingapp.api.entity.PhotoStatus
+import com.weddingapp.api.entity.UserChallenge
 import com.weddingapp.api.exception.PhotoNotAvailableException
 import com.weddingapp.api.repository.ChallengeRepository
 import com.weddingapp.api.repository.PhotoRepository
+import com.weddingapp.api.repository.UserChallengeRepository
 import com.weddingapp.api.repository.UserRepository
 import com.weddingapp.api.storage.LocalFileStorage
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -18,8 +21,13 @@ import java.util.UUID
 class PhotoService(
 
     private val photoRepository: PhotoRepository,
+
     private val userRepository: UserRepository,
+
     private val challengeRepository: ChallengeRepository,
+
+    private val userChallengeRepository: UserChallengeRepository,
+
     private val fileStorage: LocalFileStorage
 
 ) {
@@ -32,9 +40,11 @@ class PhotoService(
             "image/webp"
         )
 
-        private const val MAX_FILE_SIZE = 20L * 1024L * 1024L
+        private const val MAX_FILE_SIZE =
+            20L * 1024L * 1024L
     }
 
+    @Transactional
     fun uploadPhoto(
         userId: UUID,
         challengeId: UUID?,
@@ -48,7 +58,9 @@ class PhotoService(
         val user = userRepository
             .findById(userId)
             .orElseThrow {
-                RuntimeException("Usuario no encontrado")
+                IllegalArgumentException(
+                    "Usuario no encontrado"
+                )
             }
 
         val challenge = challengeId?.let {
@@ -56,21 +68,30 @@ class PhotoService(
             challengeRepository
                 .findById(it)
                 .orElseThrow {
-                    RuntimeException("Reto no encontrado")
+                    IllegalArgumentException(
+                        "Reto no encontrado"
+                    )
                 }
         }
 
-        val storedFile = fileStorage.store(file)
+        val storedFile =
+            fileStorage.store(file)
 
         try {
 
             val photo = Photo(
                 user = user,
                 challenge = challenge,
-                originalFilename = file.originalFilename ?: "unknown",
-                storedFilename = storedFile.filename,
-                storagePath = storedFile.path,
-                contentType = file.contentType ?: "application/octet-stream",
+                originalFilename =
+                    file.originalFilename
+                        ?: "unknown",
+                storedFilename =
+                    storedFile.filename,
+                storagePath =
+                    storedFile.path,
+                contentType =
+                    file.contentType
+                        ?: "application/octet-stream",
                 fileSize = file.size,
                 caption = caption,
                 status = PhotoStatus.PENDING
@@ -83,7 +104,9 @@ class PhotoService(
 
         } catch (exception: Exception) {
 
-            fileStorage.delete(storedFile.filename)
+            fileStorage.delete(
+                storedFile.filename
+            )
 
             throw exception
         }
@@ -94,11 +117,7 @@ class PhotoService(
         baseUrl: String
     ): PhotoResponse {
 
-        val photo = photoRepository
-            .findById(id)
-            .orElseThrow {
-                RuntimeException("Foto no encontrada")
-            }
+        val photo = getPhotoEntity(id)
 
         return PhotoResponse.from(
             photo,
@@ -112,13 +131,18 @@ class PhotoService(
     ): List<PhotoResponse> {
 
         if (!userRepository.existsById(userId)) {
-            throw RuntimeException("Usuario no encontrado")
+            throw IllegalArgumentException(
+                "Usuario no encontrado"
+            )
         }
 
         return photoRepository
             .findAllByUserIdOrderByCreatedAtDesc(userId)
             .map {
-                PhotoResponse.from(it, baseUrl)
+                PhotoResponse.from(
+                    it,
+                    baseUrl
+                )
             }
     }
 
@@ -131,10 +155,14 @@ class PhotoService(
                 PhotoStatus.PENDING
             )
             .map {
-                PhotoResponse.from(it, baseUrl)
+                PhotoResponse.from(
+                    it,
+                    baseUrl
+                )
             }
     }
 
+    @Transactional
     fun approvePhoto(
         id: UUID,
         baseUrl: String
@@ -142,10 +170,82 @@ class PhotoService(
 
         val photo = getPhotoEntity(id)
 
-        photo.status = PhotoStatus.APPROVED
-        photo.updatedAt = LocalDateTime.now()
+        if (
+            photo.status != PhotoStatus.PENDING &&
+            photo.status != PhotoStatus.REJECTED
+        ) {
+            throw IllegalArgumentException(
+                "La foto ya ha sido aprobada"
+            )
+        }
 
-        val savedPhoto = photoRepository.save(photo)
+        photo.status =
+            PhotoStatus.APPROVED
+
+        photo.updatedAt =
+            LocalDateTime.now()
+
+        /*
+         * Si tiene reto asociado,
+         * completamos el reto del usuario.
+         */
+        photo.challenge?.let { challenge ->
+
+            val user = photo.user
+
+            val existing =
+                userChallengeRepository
+                    .findByUserIdAndChallengeId(
+                        user.id!!,
+                        challenge.id!!
+                    )
+
+            if (existing == null) {
+
+                val userChallenge =
+                    UserChallenge(
+                        user = user,
+                        challenge = challenge,
+                        completed = true,
+                        completedAt =
+                            LocalDateTime.now(),
+                        pointsAwarded =
+                            challenge.points
+                    )
+
+                userChallengeRepository.save(
+                    userChallenge
+                )
+
+                user.points += challenge.points
+
+                userRepository.save(user)
+
+            } else if (!existing.completed) {
+
+                existing.completed = true
+
+                existing.completedAt =
+                    LocalDateTime.now()
+
+                existing.pointsAwarded =
+                    challenge.points
+
+                existing.updatedAt =
+                    LocalDateTime.now()
+
+                userChallengeRepository.save(
+                    existing
+                )
+
+                user.points += challenge.points
+
+                userRepository.save(user)
+            }
+        }
+
+        val savedPhoto =
+            photoRepository.save(photo)
 
         return PhotoResponse.from(
             savedPhoto,
@@ -153,6 +253,7 @@ class PhotoService(
         )
     }
 
+    @Transactional
     fun rejectPhoto(
         id: UUID,
         baseUrl: String
@@ -160,10 +261,23 @@ class PhotoService(
 
         val photo = getPhotoEntity(id)
 
-        photo.status = PhotoStatus.REJECTED
-        photo.updatedAt = LocalDateTime.now()
+        if (
+            photo.status != PhotoStatus.PENDING &&
+            photo.status != PhotoStatus.APPROVED
+        ) {
+            throw IllegalArgumentException(
+                "La foto ya ha sido aprobada"
+            )
+        }
 
-        val savedPhoto = photoRepository.save(photo)
+        photo.status =
+            PhotoStatus.REJECTED
+
+        photo.updatedAt =
+            LocalDateTime.now()
+
+        val savedPhoto =
+            photoRepository.save(photo)
 
         return PhotoResponse.from(
             savedPhoto,
@@ -178,18 +292,21 @@ class PhotoService(
 
         val photo = getPhotoEntity(id)
 
-        // Un usuario normal solo puede ver fotos aprobadas
-        if (!isAdmin && photo.status != PhotoStatus.APPROVED) {
+        if (!isAdmin &&
+            photo.status != PhotoStatus.APPROVED
+        ) {
             throw PhotoNotAvailableException()
         }
 
-        val path = fileStorage.load(
-            photo.storedFilename
-        )
+        val path =
+            fileStorage.load(
+                photo.storedFilename
+            )
 
         return StoredPhoto(
             path = path,
-            contentType = photo.contentType
+            contentType =
+                photo.contentType
         )
     }
 
@@ -200,7 +317,9 @@ class PhotoService(
         return photoRepository
             .findById(id)
             .orElseThrow {
-                RuntimeException("Foto no encontrada")
+                IllegalArgumentException(
+                    "Foto no encontrada"
+                )
             }
     }
 

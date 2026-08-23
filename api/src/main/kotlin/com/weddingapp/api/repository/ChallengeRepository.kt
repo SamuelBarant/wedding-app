@@ -7,4 +7,6 @@ import java.util.UUID
 interface ChallengeRepository : JpaRepository<Challenge, UUID> {
 
     fun findAllByActiveTrue(): List<Challenge>
+
+    fun findAllByOrderByIdAsc(): List<Challenge>
 }

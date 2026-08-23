@@ -98,34 +98,35 @@ CREATE TABLE photos (
 -- BINGO PROGRESS
 -- =========================================================
 
-CREATE TABLE bingo_progress (
-                                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE user_challenges (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                                user_id UUID NOT NULL,
+    user_id UUID NOT NULL,
 
-                                challenge_id UUID NOT NULL,
+    challenge_id UUID NOT NULL,
 
-                                photo_id UUID,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
 
-                                completed_at TIMESTAMP,
+    completed_at TIMESTAMP,
 
-                                CONSTRAINT fk_bingo_user
-                                    FOREIGN KEY (user_id)
-                                        REFERENCES users(id)
-                                        ON DELETE CASCADE,
+    points_awarded INTEGER NOT NULL DEFAULT 0,
 
-                                CONSTRAINT fk_bingo_challenge
-                                    FOREIGN KEY (challenge_id)
-                                        REFERENCES challenges(id)
-                                        ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                                CONSTRAINT fk_bingo_photo
-                                    FOREIGN KEY (photo_id)
-                                        REFERENCES photos(id)
-                                        ON DELETE SET NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                                CONSTRAINT unique_user_challenge
-                                    UNIQUE (user_id, challenge_id)
+    CONSTRAINT fk_user_challenges_user
+     FOREIGN KEY (user_id)
+         REFERENCES users(id)
+         ON DELETE CASCADE,
+
+    CONSTRAINT fk_user_challenges_challenge
+     FOREIGN KEY (challenge_id)
+         REFERENCES challenges(id)
+         ON DELETE CASCADE,
+
+    CONSTRAINT uk_user_challenge
+     UNIQUE (user_id, challenge_id)
 );
 
 
@@ -151,8 +152,8 @@ CREATE INDEX idx_photos_status
 CREATE INDEX idx_photos_created_at
     ON photos(created_at);
 
-CREATE INDEX idx_bingo_user_id
-    ON bingo_progress(user_id);
+CREATE INDEX idx_user_challenges_user
+    ON user_challenges(user_id);
 
-CREATE INDEX idx_bingo_challenge_id
-    ON bingo_progress(challenge_id);
+CREATE INDEX idx_user_challenges_challenge
+    ON user_challenges(challenge_id);
