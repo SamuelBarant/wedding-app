@@ -1,21 +1,27 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 -- =========================================================
 -- WEDDING BINGO - DATABASE SCHEMA
 -- =========================================================
 
 CREATE TABLE users (
-                       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                       firebase_uid VARCHAR(128) UNIQUE,
+   firebase_uid VARCHAR(128) UNIQUE,
 
-                       name VARCHAR(100) NOT NULL,
+   name VARCHAR(100) NOT NULL,
 
-                       profile_photo VARCHAR(500),
+   profile_photo_path VARCHAR(500),
 
-                       role VARCHAR(20) NOT NULL DEFAULT 'GUEST'
-                           CHECK (role IN ('GUEST', 'ADMIN')),
+   role VARCHAR(20) NOT NULL DEFAULT 'GUEST',
 
-                       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+   points INTEGER NOT NULL DEFAULT 0,
+
+   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+   CONSTRAINT users_role_check
+       CHECK (role IN ('GUEST', 'ADMIN'))
 );
 
 

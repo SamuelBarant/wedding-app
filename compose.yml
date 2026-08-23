@@ -73,7 +73,7 @@ services:
 
     volumes:
       # Persistencia de PostgreSQL
-      - ./data/postgres:/var/lib/postgresql/data
+      # - ./data/postgres:/var/lib/postgresql/data
 
       # Scripts iniciales
       - ./database/init:/docker-entrypoint-initdb.d:ro
