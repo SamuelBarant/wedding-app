@@ -55,45 +55,42 @@ CREATE TABLE challenges (
 -- =========================================================
 
 CREATE TABLE photos (
-                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                        user_id UUID NOT NULL,
+    user_id UUID NOT NULL,
 
-                        challenge_id UUID,
+    challenge_id UUID,
 
-                        filename VARCHAR(255) NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
 
-                        path VARCHAR(500) NOT NULL,
+    stored_filename VARCHAR(255) NOT NULL,
 
-                        caption TEXT,
+    storage_path VARCHAR(500) NOT NULL,
 
-                        status VARCHAR(20) NOT NULL DEFAULT 'PENDING'
-                            CHECK (status IN (
-                                              'PENDING',
-                                              'APPROVED',
-                                              'REJECTED'
-                                )),
+    content_type VARCHAR(100) NOT NULL,
 
-                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    file_size BIGINT NOT NULL,
 
-                        reviewed_at TIMESTAMP,
+    caption VARCHAR(500),
 
-                        reviewed_by UUID,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
 
-                        CONSTRAINT fk_photo_user
-                            FOREIGN KEY (user_id)
-                                REFERENCES users(id)
-                                ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                        CONSTRAINT fk_photo_challenge
-                            FOREIGN KEY (challenge_id)
-                                REFERENCES challenges(id)
-                                ON DELETE SET NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                        CONSTRAINT fk_photo_reviewer
-                            FOREIGN KEY (reviewed_by)
-                                REFERENCES users(id)
-                                ON DELETE SET NULL
+    CONSTRAINT fk_photos_user
+        FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE,
+
+    CONSTRAINT fk_photos_challenge
+        FOREIGN KEY (challenge_id)
+            REFERENCES challenges(id)
+            ON DELETE SET NULL,
+
+    CONSTRAINT photos_status_check
+        CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))
 );
 
 
