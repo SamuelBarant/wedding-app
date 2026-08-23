@@ -5,6 +5,7 @@ frontend/dist/
 
 api/build/
 .gradle/
+.kotlin
 
 .idea/
 *.iml
