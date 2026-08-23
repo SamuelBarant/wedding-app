@@ -30,25 +30,25 @@ CREATE TABLE users (
 -- =========================================================
 
 CREATE TABLE challenges (
-                            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                            title VARCHAR(255) NOT NULL,
+    title VARCHAR(150) NOT NULL,
 
-                            description TEXT,
+    description TEXT,
 
-                            points INTEGER NOT NULL DEFAULT 10
-                                CHECK (points >= 0),
+    points INTEGER NOT NULL DEFAULT 1,
 
-                            position INTEGER NOT NULL,
+    icon VARCHAR(100),
 
-                            active BOOLEAN NOT NULL DEFAULT TRUE,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
 
-                            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                            CONSTRAINT unique_challenge_position
-                                UNIQUE (position)
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT challenges_points_check
+    CHECK (points >= 0)
 );
-
 
 -- =========================================================
 -- PHOTOS
@@ -138,6 +138,9 @@ CREATE TABLE bingo_progress (
 
 CREATE INDEX idx_users_firebase_uid
     ON users(firebase_uid);
+
+CREATE INDEX idx_challenges_active
+    ON challenges(active);
 
 CREATE INDEX idx_photos_user_id
     ON photos(user_id);
