@@ -12,10 +12,9 @@ import MaterialSymbol from '../components/MaterialSymbol';
 import { currentUser } from '../data/mockData';
 
 const NAV_ITEMS = [
-  { label: 'Home', icon: 'home', path: '/inicio' },
-  { label: 'Bingo', icon: 'grid_view', path: '/bingo' },
-  { label: 'Photos', icon: 'photo_library', path: '/fotos' },
-  { label: 'Profile', icon: 'person', path: '/perfil' },
+  { label: 'Inicio', icon: 'home', path: '/inicio' },
+  { label: 'Fotos', icon: 'photo_library', path: '/fotos' },
+  { label: 'Perfil', icon: 'person', path: '/perfil' },
 ];
 
 export default function GuestLayout() {

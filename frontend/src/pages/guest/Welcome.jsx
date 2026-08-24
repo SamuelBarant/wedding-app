@@ -41,11 +41,11 @@ export default function Welcome() {
 
       <Box sx={{ position: 'relative', zIndex: 1, px: 4, pb: 8, textAlign: 'center', maxWidth: 480, mx: 'auto' }}>
         <Chip
-          label="24 de Septiembre, 2024"
+          label="5 de Septiembre, 2027"
           sx={{ bgcolor: 'rgba(145,71,88,0.1)', color: 'secondary.main', fontWeight: 600, mb: 3 }}
         />
         <Typography variant="h1" sx={{ color: 'primary.main', mb: 3 }}>
-          Ana &amp; Javier
+          Selemne &amp; Alvaro
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary', mb: 5 }}>
           Bienvenidos a nuestra boda. Comparte, juega y guarda los mejores momentos.

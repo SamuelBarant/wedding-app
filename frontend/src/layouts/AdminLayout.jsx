@@ -20,7 +20,6 @@ const drawerWidth = 260;
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: 'dashboard', path: '/admin' },
   { label: 'Fotos', icon: 'photo_library', path: '/admin/photos' },
-  { label: 'Bingo', icon: 'grid_view', path: '/admin/bingo' },
   { label: 'Usuarios', icon: 'group', path: '/admin/users' },
 ];
 

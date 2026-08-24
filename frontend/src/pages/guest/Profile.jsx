@@ -19,20 +19,10 @@ import { currentUser } from '../../data/mockData';
 
 const stats = [
     {
-        icon: 'stars',
-        value: currentUser.points,
-        label: 'Total Puntos',
-    },
-    {
-        icon: 'task_alt',
-        value: 4,
-        label: 'Retos',
-    },
-    {
         icon: 'photo_camera',
         value: 12,
         label: 'Fotos',
-    },
+    }
 ];
 
 const options = [
@@ -40,11 +30,6 @@ const options = [
         icon: 'photo_library',
         label: 'Fotos subidas',
         to: '/fotos',
-    },
-    {
-        icon: 'emoji_events',
-        label: 'Mi Bingo',
-        to: '/bingo',
     },
     {
         icon: 'edit',
@@ -215,7 +200,7 @@ export default function Profile() {
             <Grid
                 container
                 spacing={2}
-                sx={{ mb: 4 }}
+                sx={{ mb: 4, justifyContent: 'center' }}
             >
                 {stats.map((s) => (
                     <Grid

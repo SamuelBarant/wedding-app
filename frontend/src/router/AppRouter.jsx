@@ -5,15 +5,12 @@ import AdminLayout from '../layouts/AdminLayout';
 import Welcome from '../pages/guest/Welcome';
 import Identify from '../pages/guest/Identify';
 import Home from '../pages/guest/Home';
-import Bingo from '../pages/guest/Bingo';
 import Gallery from '../pages/guest/Gallery';
 import UploadPhoto from '../pages/guest/UploadPhoto';
-import Ranking from '../pages/guest/Ranking';
 import Profile from '../pages/guest/Profile';
 
 import Dashboard from '../pages/admin/Dashboard';
 import PhotoModeration from '../pages/admin/PhotoModeration';
-import BingoConfig from '../pages/admin/BingoConfig';
 import UsersLeaderboard from '../pages/admin/UsersLeaderboard';
 
 const router = createBrowserRouter([
@@ -23,10 +20,8 @@ const router = createBrowserRouter([
     element: <GuestLayout />,
     children: [
       { path: '/inicio', element: <Home /> },
-      { path: '/bingo', element: <Bingo /> },
       { path: '/fotos', element: <Gallery /> },
       { path: '/fotos/subir', element: <UploadPhoto /> },
-      { path: '/ranking', element: <Ranking /> },
       { path: '/perfil', element: <Profile /> },
     ],
   },
@@ -35,7 +30,6 @@ const router = createBrowserRouter([
     children: [
       { path: '/admin', element: <Dashboard /> },
       { path: '/admin/photos', element: <PhotoModeration /> },
-      { path: '/admin/bingo', element: <BingoConfig /> },
       { path: '/admin/users', element: <UsersLeaderboard /> },
     ],
   },

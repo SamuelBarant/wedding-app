@@ -317,30 +317,6 @@ export default function UploadPhoto() {
 
             {/* FORMULARIO */}
             <Stack spacing={3} sx={{ mt: 4 }}>
-
-                <TextField
-                    select
-                    label="Reto de Bingo (Opcional)"
-                    value={challenge}
-                    onChange={(event) => setChallenge(event.target.value)}
-                    fullWidth
-                    disabled={uploading}
-                >
-                    <MenuItem value="">
-                        <em>Selecciona el reto...</em>
-                    </MenuItem>
-
-                    {CHALLENGES.map((item) => (
-                        <MenuItem
-                            key={item}
-                            value={item}
-                        >
-                            {item}
-                        </MenuItem>
-                    ))}
-                </TextField>
-
-
                 <TextField
                     label="Comentario"
                     placeholder="Escribe algo sobre esta foto..."
@@ -351,7 +327,6 @@ export default function UploadPhoto() {
                     fullWidth
                     disabled={uploading}
                 />
-
             </Stack>
 
 

@@ -39,6 +39,7 @@ export const galleryPhotos = [
     id: 1,
     user: 'Ana M.',
     time: '10m',
+    caption: 'novios',
     height: 260,
     url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDJKMzVyOKAi5Fqv8vElfXnAdXgTVSSBAofLA8HFvXNN9pOVy5rJpkoozQS5R0AkZZOEa7kHgIH9CTFHSOS0upCRiLCXRXhfaGbyWZlubTEC7dMPKTwRMZv53rZGoKddhmvFuhWMca1-DnO0M4fSWI0a1NB4hNd3zhDM8cts2F-043FxZNES1tg_w9_0If_nctZ_lpHC8HIOK2N5_qIE9sMH7gbIE7QBN0AaibIRmGot9Q_kc73Y0Yy',
   },
@@ -46,6 +47,7 @@ export const galleryPhotos = [
     id: 2,
     user: 'Carlos T.',
     time: '1h',
+    caption: 'banquete',
     height: 320,
     url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBtRzV5CAeSA-Pi_aIHeQM1fVltiDKSEMjV6QYRLlbl5U-2UHMuysssvDKUgrNc6pwazBskY3KketDeD1gmKCBmRtmAAsrG9io3VGXkzjtzkOH8AZ_sXdbQE5b6kD7QWeH_KO9KUXc8E_A43ceyeDkr148v0iEMfs7e402UxK4uz6LKoiW-p9nwSHU8RblflV04YUhSh5qukVvH1yppHXl5k5ItpF42RMku_hzy8ym5n1B4aYS_Yy_V',
   },
@@ -53,6 +55,7 @@ export const galleryPhotos = [
     id: 3,
     user: 'Foto Studio',
     time: '2h',
+    caption: 'banquete',
     height: 220,
     url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDV18P6ME3biEWpLDpuNlPYNJANzjPD0XgMyKz22BtamzbIoSULnR_VlGA34mOlrg7ycHOskTYy6SFrvbUrNCXDegtgDG8T52VcY2gpJHnp7sTxL2mYgHLfxD4JM0bDUl83IHba1qV8dd5Eu6bQbNcgTTiq-_A6YZLyJeqkAKqt-MnjwJVm3vUCZOYonsBVHOymcUnFPzVHf70L9iprgT-enr7ybpbeNEyevfoTWDvidhQXlLmeMCr4',
   },
@@ -109,7 +112,7 @@ export const bingoConfigChallenges = [
 ];
 
 export const adminUsers = [
-  { id: 1, name: 'Carlos D.', email: 'carlos.d@email.com', rank: 4, points: 310, photos: 28, status: 'active' },
-  { id: 2, name: 'Laura G.', email: 'laura.g@email.com', rank: 5, points: 295, photos: 22, status: 'active' },
-  { id: 3, name: 'Roberto M.', email: 'roberto.m@email.com', rank: null, points: 45, photos: 3, status: 'blocked' },
+  { id: 1, name: 'Carlos D.', email: 'carlos.d@email.com', photos: 28},
+  { id: 2, name: 'Laura G.', email: 'laura.g@email.com', photos: 2},
+  { id: 3, name: 'Roberto M.', email: 'roberto.m@email.com', photos: 3},
 ];

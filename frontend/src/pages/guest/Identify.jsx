@@ -39,15 +39,15 @@ export default function Identify() {
           <MaterialSymbol name="auto_awesome" size={36} sx={{ color: 'primary.light', mb: 1 }} />
           <Typography variant="h2" sx={{ fontSize: 26 }}>¿Cómo te llamas?</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
-            Para personalizar tu experiencia
+            Para saber quien eres
           </Typography>
         </Box>
 
         <TextField
           fullWidth
           required
-          label="Escribe tu nombre"
-          placeholder="Tu nombre aquí..."
+          label="Escribe tu nombre y apellido"
+          placeholder="Tu nombre y apellidos aquí..."
           value={name}
           onChange={(e) => setName(e.target.value)}
           sx={{ mb: 3 }}
@@ -72,7 +72,7 @@ export default function Identify() {
         </Button>
 
         <Typography variant="caption" display="block" textAlign="center" sx={{ color: 'text.secondary', mt: 2 }}>
-          Solo usaremos tu nombre para mostrarte información relevante.
+          Solo usaremos tu nombre y apellidos para mostrarnos quien eres.
         </Typography>
       </Paper>
     </Box>

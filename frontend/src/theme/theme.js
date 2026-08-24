@@ -99,6 +99,7 @@ const theme = createTheme({
     },
     body1: { fontSize: '1rem', lineHeight: 1.6 },
     body2: { fontSize: '0.875rem', lineHeight: 1.5 },
+    body3: { fontSize: '0.7rem', lineHeight: 1, fontStyle: 'italic' },
     button: {
       fontFamily: '"Montserrat", sans-serif',
       fontWeight: 600,
