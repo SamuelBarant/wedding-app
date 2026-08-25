@@ -2,7 +2,6 @@ package com.weddingapp.api.service
 
 import com.weddingapp.api.dto.photo.PhotoResponse
 import com.weddingapp.api.entity.Photo
-import com.weddingapp.api.exception.PhotoNotAvailableException
 import com.weddingapp.api.repository.PhotoRepository
 import com.weddingapp.api.repository.UserRepository
 import com.weddingapp.api.storage.LocalFileStorage
@@ -10,16 +9,15 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Path
-import java.time.LocalDateTime
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 @Service
 class PhotoService(
 
     private val photoRepository: PhotoRepository,
-
     private val userRepository: UserRepository,
-
     private val fileStorage: LocalFileStorage
 
 ) {
@@ -39,7 +37,6 @@ class PhotoService(
     @Transactional
     fun uploadPhoto(
         userId: UUID,
-        challengeId: UUID?,
         caption: String?,
         file: MultipartFile,
         baseUrl: String
@@ -177,6 +174,16 @@ class PhotoService(
                 "Tipo de archivo no permitido"
             )
         }
+    }
+
+    fun getAllPhotos(
+        pageable: Pageable,
+        baseUrl: String
+    ): Page<PhotoResponse> {
+
+        return photoRepository
+            .findAllByOrderByCreatedAtDesc(pageable)
+            .map { PhotoResponse.from(it, baseUrl) }
     }
 }
 

@@ -11,6 +11,13 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.util.UUID
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.web.PageableDefault
+import org.springframework.http.CacheControl
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import java.time.Duration
 
 @RestController
 @RequestMapping("/api/photos")
@@ -28,9 +35,6 @@ class PhotoController(
         @RequestParam userId: UUID,
 
         @RequestParam(required = false)
-        challengeId: UUID?,
-
-        @RequestParam(required = false)
         caption: String?,
 
         @RequestParam("file")
@@ -44,7 +48,6 @@ class PhotoController(
 
         val response = photoService.uploadPhoto(
             userId = userId,
-            challengeId = challengeId,
             caption = caption,
             file = file,
             baseUrl = baseUrl
@@ -89,8 +92,7 @@ class PhotoController(
     ): ResponseEntity<Resource> {
 
         val storedPhoto = photoService.getFile(
-            id = id,
-            isAdmin = false
+            id = id
         )
 
         val resource = UrlResource(
@@ -111,10 +113,33 @@ class PhotoController(
             .body(resource)
     }
 
+    @GetMapping
+    fun getPhotos(
+        @PageableDefault(
+            size = 20,
+            sort = ["createdAt"],
+            direction = Sort.Direction.DESC
+        ) pageable: Pageable,
+        request: HttpServletRequest
+    ): ResponseEntity<Page<PhotoResponse>> {
+
+        val baseUrl = ServletUriComponentsBuilder
+            .fromRequestUri(request)
+            .replacePath(null)
+            .build()
+            .toUriString()
+
+        val photos = photoService.getAllPhotos(pageable, baseUrl)
+
+        return ResponseEntity.ok()
+            .cacheControl(CacheControl.maxAge(Duration.ofSeconds(15)))
+            .body(photos)
+    }
+
+
     private fun getBaseUrl(
         request: HttpServletRequest
     ): String {
-
         return "${request.scheme}://${request.serverName}:${request.serverPort}"
     }
 }
