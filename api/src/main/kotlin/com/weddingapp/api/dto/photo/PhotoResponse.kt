@@ -1,7 +1,6 @@
 package com.weddingapp.api.dto.photo
 
 import com.weddingapp.api.entity.Photo
-import com.weddingapp.api.entity.PhotoStatus
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -25,8 +24,6 @@ data class PhotoResponse(
 
     val caption: String?,
 
-    val status: PhotoStatus,
-
     val createdAt: LocalDateTime,
 
     val url: String
@@ -49,7 +46,6 @@ data class PhotoResponse(
                 contentType = photo.contentType,
                 fileSize = photo.fileSize,
                 caption = photo.caption,
-                status = photo.status,
                 createdAt = photo.createdAt,
                 url = "$baseUrl/api/photos/${photo.id}/file"
             )

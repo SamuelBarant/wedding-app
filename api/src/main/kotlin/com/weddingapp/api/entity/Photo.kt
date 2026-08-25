@@ -16,10 +16,6 @@ class Photo(
     @JoinColumn(name = "user_id", nullable = false)
     var user: User,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "challenge_id")
-    var challenge: Challenge? = null,
-
     @Column(name = "original_filename", nullable = false, length = 255)
     var originalFilename: String,
 
@@ -37,10 +33,6 @@ class Photo(
 
     @Column(length = 500)
     var caption: String? = null,
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    var status: PhotoStatus = PhotoStatus.PENDING,
 
     @Column(name = "created_at", nullable = false)
     var createdAt: LocalDateTime = LocalDateTime.now(),
