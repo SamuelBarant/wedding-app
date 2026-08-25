@@ -25,7 +25,7 @@ export default function Home() {
               onClick={() => navigate('/fotos/subir')}
               aria-label="Subir foto"
               sx={{
-                  width: '20%',
+                  width: 'auto',
                   height: 'auto',
                   minHeight: 190,
                   borderRadius: 3,
@@ -45,7 +45,7 @@ export default function Home() {
               }}
           >
               <MaterialSymbol name="photo_camera" fill size={60} />
-              <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '1em', letterSpacing: 0.2 }}>
+              <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '1em', letterSpacing: 0.2, mr: 4, ml: 4 }}>
                   Subir foto
               </Typography>
           </IconButton>
