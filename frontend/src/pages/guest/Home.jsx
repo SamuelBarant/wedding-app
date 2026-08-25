@@ -5,17 +5,60 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
+import CircularProgress from '@mui/material/CircularProgress';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import MaterialSymbol from '../../components/MaterialSymbol';
-import { currentUser, galleryPhotos } from '../../data/mockData';
+import { getUser } from '../../data/api/users.js';
+import { getUserPhotos } from "../../data/api/photo.js";
+import { useEffect, useState } from "react";
+
+const USER_ID_KEY = 'wedding_user_id';
 
 export default function Home() {
+  const userId = localStorage.getItem(USER_ID_KEY);
   const navigate = useNavigate();
+
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [photosUser, setPhotosUser] = useState(true);
+
+  const [error, setError] = useState(null);
+
+  // Carga los datos del usuario y su número de fotos
+  useEffect(() => {
+      if (!userId) {
+          setLoadingUser(false);
+          return;
+      }
+
+      setLoadingUser(true);
+
+      Promise.all([
+          getUser(userId),
+          getUserPhotos(userId),
+      ])
+          .then(([userData, photos]) => {
+              setUser(userData);
+              setPhotosUser(photos);
+          })
+          .catch((err) => setError(err.message))
+          .finally(() => setLoadingUser(false));
+  }, [userId]);
+
+  if (loadingUser) {
+      return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+              <CircularProgress />
+          </Box>
+      );
+  }
 
   return (
     <Box sx={{ pb: 4 }}>
       <Stack direction="row" justifyContent="center" alignItems="center" sx={{ mb: 4 }}>
         <Box>
-          <Typography variant="h2" sx={{ fontSize: 28 }}>Hola, {currentUser.name} 👋</Typography>
+          <Typography variant="h2" sx={{ fontSize: 28 }}>Hola, {user.name} 👋</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>¡Qué alegría verte por aquí!</Typography>
         </Box>
       </Stack>
@@ -54,12 +97,17 @@ export default function Home() {
       <Box sx={{ mt: 5 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
           <Typography variant="h3" sx={{ fontSize: 20, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <MaterialSymbol name="photo_library" sx={{ color: 'primary.main' }} /> Últimas fotos
+            <MaterialSymbol name="photo_library" sx={{ color: 'primary.main' }} /> Fotos propias
           </Typography>
           <Typography variant="body2" sx={{ color: 'primary.main', cursor: 'pointer' }} onClick={() => navigate('/fotos')}>Ver todas</Typography>
         </Stack>
         <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', pb: 1 }}>
-          {galleryPhotos.map((p) => (
+          {!photosUser.length > 0 && (
+              <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', mt: 4 }}>
+                  Aún no has subido ninguna foto
+              </Typography>
+          )}
+          {photosUser.map((p) => (
             <Card key={p.id} sx={{ minWidth: 220, flexShrink: 0 }}>
               <Box sx={{ height: 150, backgroundImage: `url(${p.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
               <Box sx={{ p: 1.5 }}>
@@ -73,7 +121,11 @@ export default function Home() {
         </Stack>
       </Box>
 
-
+      <Snackbar open={Boolean(error)} autoHideDuration={4000} onClose={() => setError(null)}>
+          <Alert severity="error" sx={{ bgcolor: 'white' }}>
+              {error}
+          </Alert>
+      </Snackbar>
     </Box>
   );
 }
