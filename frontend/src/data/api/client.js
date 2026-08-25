@@ -1,18 +1,38 @@
 const API_URL =
-    import.meta.env.VITE_API_URL || 'http://localhost:8080';
+    import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+
+function buildUrl(endpoint, params) {
+    if (!params) {
+        return `${API_URL}${endpoint}`;
+    }
+
+    const query = new URLSearchParams(
+        Object.entries(params).filter(([, value]) => value !== undefined && value !== null)
+    );
+
+    const queryString = query.toString();
+
+    return queryString
+        ? `${API_URL}${endpoint}?${queryString}`
+        : `${API_URL}${endpoint}`;
+}
 
 async function request(
     endpoint,
     options = {}
 ) {
+    const isFormData = options.body instanceof FormData;
+
     const response = await fetch(
-        `${API_URL}${endpoint}`,
+        buildUrl(endpoint, options.params),
         {
+            ...options,
             headers: {
-                'Content-Type': 'application/json',
+                // Si es FormData, NO fijamos Content-Type: el navegador
+                // añade el boundary correcto automáticamente.
+                ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
                 ...(options.headers || {}),
             },
-            ...options,
         }
     );
 
@@ -36,14 +56,17 @@ async function request(
 }
 
 const apiClient = {
-    get(endpoint) {
-        return request(endpoint);
+    get(endpoint, { params } = {}) {
+        return request(endpoint, { params });
     },
 
-    post(endpoint, body) {
+    post(endpoint, body, { params } = {}) {
+        const isFormData = body instanceof FormData;
+
         return request(endpoint, {
             method: 'POST',
-            body: JSON.stringify(body),
+            body: isFormData ? body : JSON.stringify(body),
+            params,
         });
     },
 

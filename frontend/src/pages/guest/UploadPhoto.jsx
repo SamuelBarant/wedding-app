@@ -6,7 +6,6 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 import LinearProgress from '@mui/material/LinearProgress';
 import Snackbar from '@mui/material/Snackbar';
@@ -17,16 +16,12 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 
 import MaterialSymbol from '../../components/MaterialSymbol';
-
-const CHALLENGES = [
-    'La novia riendo a carcajadas',
-    'Un beso inesperado',
-    'Alguien llorando de emoción',
-    'El centro de mesa más bonito',
-];
+import { uploadPhoto } from '../../data/api/photo.js';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 export default function UploadPhoto() {
     const navigate = useNavigate();
+    const { userId } = useCurrentUser();
 
     // Inputs
     const cameraInputRef = useRef(null);
@@ -37,7 +32,6 @@ export default function UploadPhoto() {
     const [preview, setPreview] = useState(null);
 
     // Formulario
-    const [challenge, setChallenge] = useState('');
     const [caption, setCaption] = useState('');
 
     // Upload
@@ -46,6 +40,7 @@ export default function UploadPhoto() {
 
     // UI
     const [success, setSuccess] = useState(false);
+    const [error, setError] = useState(null);
     const [sourceDialog, setSourceDialog] = useState(false);
 
     /**
@@ -101,37 +96,55 @@ export default function UploadPhoto() {
     };
 
     /**
-     * Subir foto
-     *
-     * De momento simulamos la subida.
-     * Posteriormente aquí irá la llamada a tu API.
+     * Subir foto de verdad al backend.
+     * El progreso es simulado hasta el 90% mientras esperamos
+     * la respuesta (fetch/axios no dan progreso real sin config
+     * extra de onUploadProgress), y salta a 100% solo si la
+     * petición responde con éxito.
      */
-    const handleUpload = () => {
+    const handleUpload = async () => {
         if (!file) {
             return;
         }
 
+        if (!userId) {
+            setError('No se ha podido identificar al usuario. Vuelve a intentarlo.');
+            return;
+        }
+
         setUploading(true);
+        setError(null);
         setProgress(0);
 
-        const interval = setInterval(() => {
+        const progressInterval = setInterval(() => {
             setProgress((currentProgress) => {
-                if (currentProgress >= 100) {
-                    clearInterval(interval);
-
-                    setUploading(false);
-                    setSuccess(true);
-
-                    setTimeout(() => {
-                        navigate('/fotos');
-                    }, 1200);
-
-                    return 100;
+                if (currentProgress >= 90) {
+                    return currentProgress;
                 }
-
                 return currentProgress + 10;
             });
         }, 150);
+
+        try {
+            await uploadPhoto(userId, file, caption);
+
+            clearInterval(progressInterval);
+            setProgress(100);
+            setUploading(false);
+            setSuccess(true);
+
+            setTimeout(() => {
+                navigate('/fotos');
+            }, 1200);
+        } catch (err) {
+            clearInterval(progressInterval);
+            setUploading(false);
+            setProgress(0);
+            setError(
+                err.message ||
+                'Error al subir la foto'
+            );
+        }
     };
 
     return (
@@ -461,6 +474,20 @@ export default function UploadPhoto() {
                     sx={{ bgcolor: 'white' }}
                 >
                     ¡Foto subida! 🎉
+                </Alert>
+            </Snackbar>
+
+            {/* ERROR */}
+            <Snackbar
+                open={Boolean(error)}
+                autoHideDuration={4000}
+                onClose={() => setError(null)}
+            >
+                <Alert
+                    severity="error"
+                    sx={{ bgcolor: 'white' }}
+                >
+                    {error}
                 </Alert>
             </Snackbar>
 

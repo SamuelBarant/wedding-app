@@ -13,11 +13,18 @@ data class UserResponse(
 ) {
     companion object {
 
-        fun from(user: User): UserResponse {
+        fun from(user: User, baseUrl: String): UserResponse {
+
+            val profilePhotoUrl = if (user.profilePhotoPath != null) {
+                "$baseUrl/api/users/${user.id}/photo"
+            } else {
+                null
+            }
+
             return UserResponse(
                 id = user.id!!,
                 name = user.name,
-                profilePhoto = user.profilePhotoPath,
+                profilePhoto = profilePhotoUrl,
                 role = user.role,
                 points = user.points
             )

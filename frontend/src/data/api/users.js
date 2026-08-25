@@ -15,3 +15,10 @@ export function updateUser(userId, name) {
         name,
     });
 }
+
+export function uploadProfilePhoto(userId, photo) {
+    const formData = new FormData();
+    formData.append('photo', photo);
+
+    return apiClient.post(`/users/${userId}/photo`, formData);
+}

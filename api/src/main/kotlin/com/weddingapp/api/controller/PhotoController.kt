@@ -22,26 +22,19 @@ import java.time.Duration
 @RestController
 @RequestMapping("/api/photos")
 class PhotoController(
-
     private val photoService: PhotoService
-
 ) {
 
     @PostMapping(
         consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]
     )
     fun uploadPhoto(
-
         @RequestParam userId: UUID,
-
         @RequestParam(required = false)
         caption: String?,
-
         @RequestParam("file")
         file: MultipartFile,
-
         request: HttpServletRequest
-
     ): ResponseEntity<PhotoResponse> {
 
         val baseUrl = getBaseUrl(request)
