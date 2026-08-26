@@ -15,6 +15,15 @@ import { useEffect, useState } from "react";
 
 const USER_ID_KEY = 'wedding_user_id';
 
+function timeAgo(dateString) {
+    const diffMs = Date.now() - new Date(dateString).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 60) return `${mins} min`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} h`;
+    return `${Math.floor(hours / 24)} d`;
+}
+
 export default function Home() {
   const userId = localStorage.getItem(USER_ID_KEY);
   const navigate = useNavigate();
@@ -111,10 +120,10 @@ export default function Home() {
             <Card key={p.id} sx={{ minWidth: 220, flexShrink: 0 }}>
               <Box sx={{ height: 150, backgroundImage: `url(${p.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
               <Box sx={{ p: 1.5 }}>
-                <Typography variant="body2" noWrap>Usuario: {p.user}</Typography>
+                <Typography variant="body2" noWrap>Usuario: {p.userName}</Typography>
                 <Typography variant="body3" noWrap>{p.caption}</Typography>
                   <Divider/>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Hace {p.time}</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Hace {timeAgo(p.createdAt)}</Typography>
               </Box>
             </Card>
           ))}

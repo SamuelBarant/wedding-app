@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
@@ -9,8 +10,12 @@ import Dialog from '@mui/material/Dialog';
 import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 import MaterialSymbol from '../../components/MaterialSymbol';
 import { getAllPhotos, getUserPhotos } from '../../data/api/photo.js';
+import {getUser} from "../../data/api/users.js";
 
 const USER_ID_KEY = 'wedding_user_id';
 
@@ -31,7 +36,13 @@ export default function Gallery() {
     const [filter, setFilter] = useState('all'); // 'all' | 'mine'
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
+    const [user, setUser] = useState(null);
+    const [loadingUser, setLoadingUser] = useState(true);
+
+    const location = useLocation();
+    const navigate = useNavigate();
     const userId = localStorage.getItem(USER_ID_KEY);
 
     // Al cambiar de filtro, siempre volvemos a la primera página
@@ -45,6 +56,8 @@ export default function Gallery() {
         setLoading(true);
         setError(null);
 
+        const bustCache = Boolean(location.state?.justUploaded);
+
         if (filter === 'mine') {
             if (!userId) {
                 setPhotos([]);
@@ -53,7 +66,7 @@ export default function Gallery() {
                 return;
             }
 
-            // getUserPhotos no está paginado: devuelve el array completo
+            // getUserPhotos no está paginado ni cacheado: no necesita bustCache
             getUserPhotos(userId)
                 .then((data) => setPhotos(data))
                 .catch((err) => setError(err.message))
@@ -62,19 +75,69 @@ export default function Gallery() {
             return;
         }
 
-        getAllPhotos(page, 20)
+        getAllPhotos(page, 20, bustCache)
             .then((data) => {
                 setPhotos(data.content);
                 setTotalPages(data.totalPages);
             })
             .catch((err) => setError(err.message))
-            .finally(() => setLoading(false));
-    }, [page, filter, userId]);
+            .finally(() => {
+                setLoading(false);
+
+                if (bustCache) {
+                    // Limpiamos el flag para que un F5 posterior no lo repita innecesariamente
+                    navigate(location.pathname, { replace: true, state: {} });
+                }
+            });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, filter, userId, refreshKey]);
+
+    // Vuelve a pedir las fotos cuando el usuario regresa a la pestaña/app
+    // (útil en móvil: la deja en segundo plano y al volver puede haber fotos nuevas)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                setRefreshKey((k) => k + 1);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!userId) {
+            setLoadingUser(false);
+            return;
+        }
+
+        setLoadingUser(true);
+
+        Promise.all([
+            getUser(userId),
+        ])
+            .then(([userData]) => {
+                setUser(userData);
+            })
+            .catch((err) => setError(err.message))
+            .finally(() => setLoadingUser(false));
+    }, [userId]);
+
+    if (loadingUser) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     return (
         <Box>
             <Typography variant="h1" sx={{ fontSize: { xs: 28, md: 36 }, mt: 4, mb: 2, textAlign: 'center' }}>
-                Galeria
+                Galería
             </Typography>
 
             <Stack direction="row" justifyContent="center" sx={{ mb: 3 }}>
@@ -138,7 +201,7 @@ export default function Gallery() {
                         />
                         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 1.5 }}>
                             <Stack direction="row" spacing={1} alignItems="center">
-                                <Avatar sx={{ width: 22, height: 22, fontSize: 11 }}>
+                                <Avatar src={user?.profilePhoto || undefined} sx={{ width: 22, height: 22, fontSize: 11 }}>
                                     {photo.userName?.[0]}
                                 </Avatar>
                                 <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13 }}>
@@ -168,7 +231,8 @@ export default function Gallery() {
                 )}
             </Box>
 
-            {filter === 'all' && !loading && photos.length > 20 && (
+            {/* La paginación solo aplica a "Todas", y solo si hay más de una página */}
+            {filter === 'all' && !loading && photos.length > 0 && totalPages > 1 && (
                 <Stack direction="row" justifyContent="center" spacing={2} sx={{ my: 3 }}>
                     <IconButton
                         onClick={() => setPage((p) => Math.max(p - 1, 0))}
@@ -177,9 +241,12 @@ export default function Gallery() {
                         <MaterialSymbol name="chevron_left" />
                     </IconButton>
                     <Typography variant="body2" sx={{ alignSelf: 'center' }}>
-                        Página {page + 1}
+                        Página {page + 1} de {totalPages}
                     </Typography>
-                    <IconButton onClick={() => setPage((p) => p + 1)}>
+                    <IconButton
+                        onClick={() => setPage((p) => p + 1)}
+                        disabled={page + 1 >= totalPages}
+                    >
                         <MaterialSymbol name="chevron_right" />
                     </IconButton>
                 </Stack>
@@ -211,6 +278,19 @@ export default function Gallery() {
                     </Box>
                 )}
             </Dialog>
+
+            <Snackbar
+                open={Boolean(error)}
+                autoHideDuration={4000}
+                onClose={() => setError(null)}
+            >
+                <Alert
+                    severity="error"
+                    sx={{ bgcolor: 'white' }}
+                >
+                    {error}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }

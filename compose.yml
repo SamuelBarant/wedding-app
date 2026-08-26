@@ -1,101 +1,65 @@
 services:
 
-  # =====================================================
-  # FRONTEND
-  # =====================================================
+  db:
+    image: postgres:16-alpine
+    container_name: wedding-db
+    restart: unless-stopped
+    env_file:
+      - compose.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Monta aquí tus scripts .sql (01-schema.sql, etc.) para que se ejecuten
+      # SOLO la primera vez que se crea el volumen de datos.
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - wedding-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d wedding"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: wedding-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - compose.env
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persistencia real en el servidor doméstico: sobrevive a rebuilds del contenedor
+      - ./data/photos:/data/photos
+    networks:
+      - wedding-net
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-
+      args:
+        # Para pruebas locales con todo dockerizado. En Cloudflare Pages
+        # esta variable se configura aparte, en el panel de CF (ver notas abajo).
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
     container_name: wedding-frontend
-
     restart: unless-stopped
-
-    ports:
-      - "5173:5173"
-
     depends_on:
-      - backend
-
-    networks:
-      - wedding
-
-
-  # =====================================================
-  # BACKEND
-  # =====================================================
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-
-    container_name: wedding-backend
-
-    restart: unless-stopped
-
-    env_file:
-      - compose.env
-
+      - api
     ports:
-      - "8080:8080"
-
-    volumes:
-      # Fotos y perfiles
-      - ./data/wedding:/data/wedding
-
-    depends_on:
-      database:
-        condition: service_healthy
-
+      - "5173:80"
     networks:
-      - wedding
-
-
-  # =====================================================
-  # DATABASE
-  # =====================================================
-
-  database:
-    image: postgres:17
-
-    container_name: wedding-database
-
-    restart: unless-stopped
-
-    env_file:
-      - compose.env
-
-    ports:
-      - "5432:5432"
-
-    volumes:
-      # Persistencia de PostgreSQL
-      # - ./data/postgres:/var/lib/postgresql/data
-
-      # Scripts iniciales
-      - ./database/init:/docker-entrypoint-initdb.d:ro
-
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
-        ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-    networks:
-      - wedding
-
-
-# =====================================================
-# NETWORK
-# =====================================================
+      - wedding-net
 
 networks:
-  wedding:
+  wedding-net:
     driver: bridge
+
+volumes:
+  db-data:

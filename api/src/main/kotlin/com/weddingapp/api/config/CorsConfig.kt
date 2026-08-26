@@ -1,27 +1,32 @@
 package com.weddingapp.api.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.CorsRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
-class CorsConfig : WebMvcConfigurer {
+class CorsConfig(
+
+    @Value("\${app.cors.allowed-origins}")
+    private val allowedOrigins: String
+
+) : WebMvcConfigurer {
 
     override fun addCorsMappings(registry: CorsRegistry) {
-        registry
-            .addMapping("/**")
-            .allowedOrigins(
-                "http://localhost:5173",
-                "http://192.168.1.231:5173"
-            )
-            .allowedMethods(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "OPTIONS"
-            )
+
+        val origins = allowedOrigins
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .toTypedArray()
+
+        registry.addMapping("/api/**")
+            // allowedOriginPatterns (no allowedOrigins) para poder usar comodines,
+            // como https://*.pages.dev en los despliegues de preview de Cloudflare.
+            .allowedOriginPatterns(*origins)
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
-            .allowCredentials(true)
+            .allowCredentials(false)
     }
 }

@@ -6,9 +6,6 @@ import com.weddingapp.api.dto.user.UserResponse
 import com.weddingapp.api.service.UserService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import org.springframework.core.io.Resource
-import org.springframework.core.io.UrlResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -29,7 +26,10 @@ class UserController(
     ): ResponseEntity<UserResponse> {
 
         return ResponseEntity.ok(
-            userService.getUserById(id, getBaseUrl(request))
+            userService.getUserById(
+                id = id,
+                baseUrl = getBaseUrl(request)
+            )
         )
     }
 
@@ -54,15 +54,24 @@ class UserController(
         @RequestBody request: CreateUserRequest
     ): ResponseEntity<UserResponse> {
 
+        val result = userService.createUser(request)
+
+        val status = if (result.created) {
+            HttpStatus.CREATED
+        } else {
+            HttpStatus.OK
+        }
+
         return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(userService.createUser(request))
+            .status(status)
+            .body(result.user)
     }
 
     /**
-     * Subida/cambio de foto de perfil. Va en POST (no PUT) porque
-     * el Servlet spec solo permite parsear multipart/form-data
-     * en peticiones POST.
+     * Subida/cambio de foto de perfil.
+     *
+     * La foto se recibe en el backend y posteriormente
+     * se almacena en Cloudflare R2.
      */
     @PostMapping(
         "/{id}/photo",
@@ -83,29 +92,20 @@ class UserController(
         )
     }
 
+    /**
+     * Devuelve una URL firmada temporal de R2
+     * para acceder directamente a la foto.
+     */
     @GetMapping("/{id}/photo")
     fun getProfilePhoto(
         @PathVariable id: UUID
-    ): ResponseEntity<Resource> {
+    ): ResponseEntity<String> {
 
-        val storedPhoto = userService.getProfilePhotoFile(id)
-
-        val resource = UrlResource(
-            storedPhoto.path.toUri()
-        )
+        val url = userService.getProfilePhotoUrl(id)
 
         return ResponseEntity
             .ok()
-            .contentType(
-                MediaType.parseMediaType(
-                    storedPhoto.contentType
-                )
-            )
-            .header(
-                HttpHeaders.CONTENT_DISPOSITION,
-                "inline"
-            )
-            .body(resource)
+            .body(url)
     }
 
     private fun getBaseUrl(

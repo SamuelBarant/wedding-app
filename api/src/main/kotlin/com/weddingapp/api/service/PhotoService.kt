@@ -4,22 +4,20 @@ import com.weddingapp.api.dto.photo.PhotoResponse
 import com.weddingapp.api.entity.Photo
 import com.weddingapp.api.repository.PhotoRepository
 import com.weddingapp.api.repository.UserRepository
-import com.weddingapp.api.storage.LocalFileStorage
+import com.weddingapp.api.storage.r2.R2Storage
+import com.weddingapp.api.storage.r2.R2StoredResource
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
-import java.nio.file.Path
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 @Service
 class PhotoService(
-
     private val photoRepository: PhotoRepository,
     private val userRepository: UserRepository,
-    private val fileStorage: LocalFileStorage
-
+    private val fileStorage: R2Storage
 ) {
 
     companion object {
@@ -52,25 +50,28 @@ class PhotoService(
                 )
             }
 
-        val storedFile =
-            fileStorage.store(file)
+        val storedFile = fileStorage.store(file)
 
         try {
 
             val photo = Photo(
                 user = user,
                 originalFilename =
-                    file.originalFilename
-                        ?: "unknown",
+                    file.originalFilename ?: "unknown",
+
                 storedFilename =
-                    storedFile.filename,
+                    storedFile.key,
+
                 storagePath =
-                    storedFile.path,
+                    storedFile.key,
+
                 contentType =
                     file.contentType
                         ?: "application/octet-stream",
+
                 fileSize = file.size,
-                caption = caption,
+
+                caption = caption
             )
 
             return PhotoResponse.from(
@@ -81,7 +82,7 @@ class PhotoService(
         } catch (exception: Exception) {
 
             fileStorage.delete(
-                storedFile.filename
+                storedFile.key
             )
 
             throw exception
@@ -122,21 +123,12 @@ class PhotoService(
             }
     }
 
-    fun getFile(
-        id: UUID,
-    ): StoredPhoto {
+    fun getFileUrl(id: UUID): String {
 
         val photo = getPhotoEntity(id)
 
-        val path =
-            fileStorage.load(
-                photo.storedFilename
-            )
-
-        return StoredPhoto(
-            path = path,
-            contentType =
-                photo.contentType
+        return fileStorage.getUrl(
+            photo.storagePath
         )
     }
 
@@ -183,11 +175,16 @@ class PhotoService(
 
         return photoRepository
             .findAllByOrderByCreatedAtDesc(pageable)
-            .map { PhotoResponse.from(it, baseUrl) }
+            .map {
+                PhotoResponse.from(
+                    it,
+                    baseUrl
+                )
+            }
     }
 }
 
 data class StoredPhoto(
-    val path: Path,
+    val resource: R2StoredResource,
     val contentType: String
 )

@@ -8,8 +8,11 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+import CircularProgress from '@mui/material/CircularProgress';
 import MaterialSymbol from '../components/MaterialSymbol';
 import { currentUser } from '../data/mockData';
+import {getUser} from "../data/api/users.js";
+import { useEffect, useState } from "react";
 
 const NAV_ITEMS = [
   { label: 'Inicio', icon: 'home', path: '/inicio' },
@@ -17,10 +20,44 @@ const NAV_ITEMS = [
   { label: 'Perfil', icon: 'person', path: '/perfil' },
 ];
 
+const USER_ID_KEY = 'wedding_user_id';
+
 export default function GuestLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentIndex = NAV_ITEMS.findIndex((item) => location.pathname.startsWith(item.path));
+
+  const userId = localStorage.getItem(USER_ID_KEY);
+
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+      if (!userId) {
+          setLoadingUser(false);
+          return;
+      }
+
+      setLoadingUser(true);
+
+      Promise.all([
+          getUser(userId),
+      ])
+          .then(([userData]) => {
+              setUser(userData);
+          })
+          .catch((err) => setError(err.message))
+          .finally(() => setLoadingUser(false));
+  }, [userId]);
+
+  if (loadingUser) {
+      return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+              <CircularProgress />
+          </Box>
+      );
+  }
 
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
@@ -30,7 +67,8 @@ export default function GuestLayout() {
             Nuestra Boda
           </Typography>
           <IconButton onClick={() => navigate('/perfil')}>
-            <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.light' }}>
+            <Avatar src={user?.profilePhoto || undefined}
+                    sx={{ width: 32, height: 32, bgcolor: 'secondary.light' }}>
               {currentUser.name[0]}
             </Avatar>
           </IconButton>

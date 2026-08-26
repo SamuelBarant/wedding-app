@@ -17,6 +17,7 @@ import DialogActions from '@mui/material/DialogActions';
 
 import MaterialSymbol from '../../components/MaterialSymbol';
 import { uploadPhoto } from '../../data/api/photo.js';
+// ⚠️ Ajusta esta ruta si tu hook está en otro sitio
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 export default function UploadPhoto() {
@@ -134,7 +135,7 @@ export default function UploadPhoto() {
             setSuccess(true);
 
             setTimeout(() => {
-                navigate('/fotos');
+                navigate('/fotos', { state: { justUploaded: true } });
             }, 1200);
         } catch (err) {
             clearInterval(progressInterval);

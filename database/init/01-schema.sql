@@ -5,49 +5,23 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- =========================================================
 
 CREATE TABLE users (
-   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-   firebase_uid VARCHAR(128) UNIQUE,
+                       firebase_uid VARCHAR(128) UNIQUE,
 
-   name VARCHAR(100) NOT NULL,
+                       name VARCHAR(100) NOT NULL,
 
-   profile_photo_path VARCHAR(500),
+                       profile_photo_path VARCHAR(500),
 
-   role VARCHAR(20) NOT NULL DEFAULT 'GUEST',
+                       role VARCHAR(20) NOT NULL DEFAULT 'GUEST',
 
-   points INTEGER NOT NULL DEFAULT 0,
+                       points INTEGER NOT NULL DEFAULT 0,
 
-   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-   CONSTRAINT users_role_check
-       CHECK (role IN ('GUEST', 'ADMIN'))
-);
-
-
--- =========================================================
--- CHALLENGES
--- =========================================================
-
-CREATE TABLE challenges (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    title VARCHAR(150) NOT NULL,
-
-    description TEXT,
-
-    points INTEGER NOT NULL DEFAULT 1,
-
-    icon VARCHAR(100),
-
-    active BOOLEAN NOT NULL DEFAULT TRUE,
-
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT challenges_points_check
-    CHECK (points >= 0)
+                       CONSTRAINT users_role_check
+                           CHECK (role IN ('GUEST', 'ADMIN'))
 );
 
 -- =========================================================
@@ -55,80 +29,31 @@ CREATE TABLE challenges (
 -- =========================================================
 
 CREATE TABLE photos (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    user_id UUID NOT NULL,
+                        user_id UUID NOT NULL,
 
-    challenge_id UUID,
+                        original_filename VARCHAR(255) NOT NULL,
 
-    original_filename VARCHAR(255) NOT NULL,
+                        stored_filename VARCHAR(255) NOT NULL,
 
-    stored_filename VARCHAR(255) NOT NULL,
+                        storage_path VARCHAR(500) NOT NULL,
 
-    storage_path VARCHAR(500) NOT NULL,
+                        content_type VARCHAR(100) NOT NULL,
 
-    content_type VARCHAR(100) NOT NULL,
+                        file_size BIGINT NOT NULL,
 
-    file_size BIGINT NOT NULL,
+                        caption VARCHAR(500),
 
-    caption VARCHAR(500),
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+                        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_photos_user
-        FOREIGN KEY (user_id)
-            REFERENCES users(id)
-            ON DELETE CASCADE,
-
-    CONSTRAINT fk_photos_challenge
-        FOREIGN KEY (challenge_id)
-            REFERENCES challenges(id)
-            ON DELETE SET NULL,
-
-    CONSTRAINT photos_status_check
-        CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))
+                        CONSTRAINT fk_photos_user
+                            FOREIGN KEY (user_id)
+                                REFERENCES users(id)
+                                ON DELETE CASCADE
 );
-
-
--- =========================================================
--- BINGO PROGRESS
--- =========================================================
-
-CREATE TABLE user_challenges (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    user_id UUID NOT NULL,
-
-    challenge_id UUID NOT NULL,
-
-    completed BOOLEAN NOT NULL DEFAULT FALSE,
-
-    completed_at TIMESTAMP,
-
-    points_awarded INTEGER NOT NULL DEFAULT 0,
-
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_user_challenges_user
-     FOREIGN KEY (user_id)
-         REFERENCES users(id)
-         ON DELETE CASCADE,
-
-    CONSTRAINT fk_user_challenges_challenge
-     FOREIGN KEY (challenge_id)
-         REFERENCES challenges(id)
-         ON DELETE CASCADE,
-
-    CONSTRAINT uk_user_challenge
-     UNIQUE (user_id, challenge_id)
-);
-
 
 -- =========================================================
 -- INDEXES
@@ -137,23 +62,8 @@ CREATE TABLE user_challenges (
 CREATE INDEX idx_users_firebase_uid
     ON users(firebase_uid);
 
-CREATE INDEX idx_challenges_active
-    ON challenges(active);
-
 CREATE INDEX idx_photos_user_id
     ON photos(user_id);
 
-CREATE INDEX idx_photos_challenge_id
-    ON photos(challenge_id);
-
-CREATE INDEX idx_photos_status
-    ON photos(status);
-
 CREATE INDEX idx_photos_created_at
     ON photos(created_at);
-
-CREATE INDEX idx_user_challenges_user
-    ON user_challenges(user_id);
-
-CREATE INDEX idx_user_challenges_challenge
-    ON user_challenges(challenge_id);

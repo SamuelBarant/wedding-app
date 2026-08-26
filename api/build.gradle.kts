@@ -39,6 +39,9 @@ dependencies {
     // OpenAPI / Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 
+    // R2
+    implementation("software.amazon.awssdk:s3:2.34.4")
+
     // Tests
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
