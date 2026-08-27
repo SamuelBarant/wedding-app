@@ -2,7 +2,6 @@ package com.weddingapp.api.controller
 
 import com.weddingapp.api.dto.photo.PhotoResponse
 import com.weddingapp.api.service.PhotoService
-import jakarta.servlet.http.HttpServletRequest
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -26,18 +25,15 @@ class PhotoController(
     fun uploadPhoto(
         @RequestParam userId: UUID,
         @RequestParam(required = false) caption: String?,
-        @RequestParam("file") file: MultipartFile,
-        request: HttpServletRequest
+        @RequestParam("file") file: MultipartFile
     ): ResponseEntity<PhotoResponse> {
 
-        val baseUrl = getBaseUrl(request)
-
-        val response = photoService.uploadPhoto(
-            userId = userId,
-            caption = caption,
-            file = file,
-            baseUrl = baseUrl
-        )
+        val response =
+            photoService.uploadPhoto(
+                userId = userId,
+                caption = caption,
+                file = file
+            )
 
         return ResponseEntity
             .status(201)
@@ -46,29 +42,21 @@ class PhotoController(
 
     @GetMapping("/{id}")
     fun getPhoto(
-        @PathVariable id: UUID,
-        request: HttpServletRequest
+        @PathVariable id: UUID
     ): ResponseEntity<PhotoResponse> {
 
         return ResponseEntity.ok(
-            photoService.getPhoto(
-                id = id,
-                baseUrl = getBaseUrl(request)
-            )
+            photoService.getPhoto(id)
         )
     }
 
     @GetMapping("/user/{userId}")
     fun getUserPhotos(
-        @PathVariable userId: UUID,
-        request: HttpServletRequest
+        @PathVariable userId: UUID
     ): ResponseEntity<List<PhotoResponse>> {
 
         return ResponseEntity.ok(
-            photoService.getUserPhotos(
-                userId = userId,
-                baseUrl = getBaseUrl(request)
-            )
+            photoService.getUserPhotos(userId)
         )
     }
 
@@ -77,7 +65,8 @@ class PhotoController(
         @PathVariable id: UUID
     ): ResponseEntity<String> {
 
-        val url = photoService.getFileUrl(id)
+        val url =
+            photoService.getFileUrl(id)
 
         return ResponseEntity
             .ok()
@@ -96,16 +85,12 @@ class PhotoController(
             sort = ["createdAt"],
             direction = Sort.Direction.DESC
         )
-        pageable: Pageable,
-        request: HttpServletRequest
+        pageable: Pageable
     ): ResponseEntity<Page<PhotoResponse>> {
-
-        val baseUrl = getBaseUrl(request)
 
         val photos =
             photoService.getAllPhotos(
-                pageable = pageable,
-                baseUrl = baseUrl
+                pageable
             )
 
         return ResponseEntity
@@ -116,11 +101,5 @@ class PhotoController(
                 )
             )
             .body(photos)
-    }
-
-    private fun getBaseUrl(
-        request: HttpServletRequest
-    ): String {
-        return "${request.scheme}://${request.serverName}:${request.serverPort}"
     }
 }

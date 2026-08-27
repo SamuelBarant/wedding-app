@@ -36,8 +36,7 @@ class PhotoService(
     fun uploadPhoto(
         userId: UUID,
         caption: String?,
-        file: MultipartFile,
-        baseUrl: String
+        file: MultipartFile
     ): PhotoResponse {
 
         validateFile(file)
@@ -74,9 +73,14 @@ class PhotoService(
                 caption = caption
             )
 
+            val savedPhoto =
+                photoRepository.save(photo)
+
             return PhotoResponse.from(
-                photoRepository.save(photo),
-                baseUrl
+                savedPhoto,
+                fileStorage.getUrl(
+                    savedPhoto.storagePath
+                )
             )
 
         } catch (exception: Exception) {
@@ -90,21 +94,21 @@ class PhotoService(
     }
 
     fun getPhoto(
-        id: UUID,
-        baseUrl: String
+        id: UUID
     ): PhotoResponse {
 
         val photo = getPhotoEntity(id)
 
         return PhotoResponse.from(
             photo,
-            baseUrl
+            fileStorage.getUrl(
+                photo.storagePath
+            )
         )
     }
 
     fun getUserPhotos(
-        userId: UUID,
-        baseUrl: String
+        userId: UUID
     ): List<PhotoResponse> {
 
         if (!userRepository.existsById(userId)) {
@@ -115,21 +119,43 @@ class PhotoService(
 
         return photoRepository
             .findAllByUserIdOrderByCreatedAtDesc(userId)
-            .map {
+            .map { photo ->
+
                 PhotoResponse.from(
-                    it,
-                    baseUrl
+                    photo,
+                    fileStorage.getUrl(
+                        photo.storagePath
+                    )
                 )
             }
     }
 
-    fun getFileUrl(id: UUID): String {
+    fun getFileUrl(
+        id: UUID
+    ): String {
 
         val photo = getPhotoEntity(id)
 
         return fileStorage.getUrl(
             photo.storagePath
         )
+    }
+
+    fun getAllPhotos(
+        pageable: Pageable
+    ): Page<PhotoResponse> {
+
+        return photoRepository
+            .findAllByOrderByCreatedAtDesc(pageable)
+            .map { photo ->
+
+                PhotoResponse.from(
+                    photo,
+                    fileStorage.getUrl(
+                        photo.storagePath
+                    )
+                )
+            }
     }
 
     private fun getPhotoEntity(
@@ -166,21 +192,6 @@ class PhotoService(
                 "Tipo de archivo no permitido"
             )
         }
-    }
-
-    fun getAllPhotos(
-        pageable: Pageable,
-        baseUrl: String
-    ): Page<PhotoResponse> {
-
-        return photoRepository
-            .findAllByOrderByCreatedAtDesc(pageable)
-            .map {
-                PhotoResponse.from(
-                    it,
-                    baseUrl
-                )
-            }
     }
 }
 

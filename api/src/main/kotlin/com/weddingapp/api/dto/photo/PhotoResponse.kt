@@ -20,7 +20,7 @@ data class PhotoResponse(
 
         fun from(
             photo: Photo,
-            baseUrl: String
+            url: String
         ): PhotoResponse {
 
             return PhotoResponse(
@@ -32,7 +32,7 @@ data class PhotoResponse(
                 fileSize = photo.fileSize,
                 caption = photo.caption,
                 createdAt = photo.createdAt,
-                url = "$baseUrl/api/photos/${photo.id}/file"
+                url = url
             )
         }
     }
