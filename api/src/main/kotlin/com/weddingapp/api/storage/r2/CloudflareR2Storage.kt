@@ -47,11 +47,15 @@ class CloudflareR2Storage(
                 .contentLength(file.size)
                 .build()
 
+        // fromBytes en vez de fromInputStream(file.inputStream, ...):
+        // el SDK de AWS necesita releer el contenido para firmar la petición
+        // (SigV4 con chunked payload), y el InputStream de un MultipartFile
+        // de Spring no soporta mark/reset. Leerlo a memoria como ByteArray
+        // evita el problema.
         s3Client.putObject(
             request,
-            RequestBody.fromInputStream(
-                file.inputStream,
-                file.size
+            RequestBody.fromBytes(
+                file.bytes
             )
         )
 
