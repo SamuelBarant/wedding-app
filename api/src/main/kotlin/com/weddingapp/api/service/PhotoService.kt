@@ -142,20 +142,33 @@ class PhotoService(
     }
 
     fun getAllPhotos(
-        pageable: Pageable
+        pageable: Pageable,
+        userName: String? = null
     ): Page<PhotoResponse> {
 
-        return photoRepository
-            .findAllByOrderByCreatedAtDesc(pageable)
-            .map { photo ->
+        val trimmedUserName =
+            userName?.trim()?.takeIf { it.isNotEmpty() }
 
-                PhotoResponse.from(
-                    photo,
-                    fileStorage.getUrl(
-                        photo.storagePath
-                    )
+        val photos = if (trimmedUserName != null) {
+            photoRepository
+                .findAllByUser_NameContainingIgnoreCaseOrderByCreatedAtDesc(
+                    trimmedUserName,
+                    pageable
                 )
-            }
+        } else {
+            photoRepository
+                .findAllByOrderByCreatedAtDesc(pageable)
+        }
+
+        return photos.map { photo ->
+
+            PhotoResponse.from(
+                photo,
+                fileStorage.getUrl(
+                    photo.storagePath
+                )
+            )
+        }
     }
 
     private fun getPhotoEntity(

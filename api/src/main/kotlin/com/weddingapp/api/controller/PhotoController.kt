@@ -80,6 +80,7 @@ class PhotoController(
 
     @GetMapping
     fun getPhotos(
+        @RequestParam(required = false) userName: String?,
         @PageableDefault(
             size = 20,
             sort = ["createdAt"],
@@ -90,7 +91,8 @@ class PhotoController(
 
         val photos =
             photoService.getAllPhotos(
-                pageable
+                pageable = pageable,
+                userName = userName
             )
 
         return ResponseEntity

@@ -15,4 +15,13 @@ interface PhotoRepository: JpaRepository<Photo, UUID> {
     fun findAllByOrderByCreatedAtDesc(
         pageable: Pageable
     ): Page<Photo>
+
+    fun findAllByUser_NameContainingIgnoreCaseOrderByCreatedAtDesc(
+        userName: String,
+        pageable: Pageable
+    ): Page<Photo>
+
+    fun countByUserId(
+        userId: UUID
+    ): Long
 }

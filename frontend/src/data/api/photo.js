@@ -6,12 +6,14 @@ import apiClient from './client';
  * @param {boolean} [bustCache] - si true, fuerza saltarse el caché de 15s
  *   (Cache-Control del backend + caché del navegador). Úsalo justo
  *   después de subir una foto propia, para verla al momento.
+ * @param {string} [userName] - filtra por nombre de usuario (contiene, sin mayúsculas/minúsculas)
  */
-export function getAllPhotos(page = 0, size = 20, bustCache = false) {
+export function getAllPhotos(page = 0, size = 20, bustCache = false, userName = undefined) {
     return apiClient.get('/photos', {
         params: {
             page,
             size,
+            userName,
             ...(bustCache ? { _: Date.now() } : {}),
         },
     });
