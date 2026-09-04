@@ -10,7 +10,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import MaterialSymbol from '../../components/MaterialSymbol';
-import { createUser, updateUser, getUser } from '../../data/api/users.js';
+import { createUser, getUser } from '../../data/api/users.js';
 
 const STORAGE_KEY = 'wedding_user_id';
 
@@ -53,12 +53,12 @@ export default function Identify() {
         setError(null);
 
         try {
-            if (userId) {
-                await updateUser(userId, trimmedName);
-            } else {
-                const newUser = await createUser(trimmedName);
-                localStorage.setItem(STORAGE_KEY, newUser.id);
-            }
+            // createUser busca por nombre (case-insensitive) y reutiliza el
+            // usuario si ya existe. Así, si el nombre introducido es distinto
+            // al de la sesión actual, esto cambia de usuario (o crea uno
+            // nuevo) en vez de renombrar la cuenta con la que se entró.
+            const user = await createUser(trimmedName);
+            localStorage.setItem(STORAGE_KEY, user.id);
 
             navigate('/inicio');
         } catch (err) {
@@ -103,10 +103,12 @@ export default function Identify() {
                 <Box sx={{ textAlign: 'center', mb: 4 }}>
                     <MaterialSymbol name="auto_awesome" size={36} sx={{ color: 'primary.light', mb: 1 }} />
                     <Typography variant="h2" sx={{ fontSize: 26 }}>
-                        {userId ? 'Actualiza tu nombre' : '¿Cómo te llamas?'}
+                        {userId ? 'Cambiar de usuario' : '¿Cómo te llamas?'}
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
-                        Para saber quien eres
+                        {userId
+                            ? 'Si escribes un nombre distinto, entrarás en esa cuenta'
+                            : 'Para saber quien eres'}
                     </Typography>
                 </Box>
 
