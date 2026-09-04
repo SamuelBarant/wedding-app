@@ -1,11 +1,16 @@
 .env
+compose.env
+frontend/.env.local
 
 frontend/node_modules/
 frontend/dist/
 
 api/build/
+api/node_modules/
 .gradle/
 .kotlin
+
+data/
 
 .idea/
 *.iml
