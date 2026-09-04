@@ -10,7 +10,6 @@ import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import CircularProgress from '@mui/material/CircularProgress';
 import MaterialSymbol from '../components/MaterialSymbol';
-import { currentUser } from '../data/mockData';
 import {getUser} from "../data/api/users.js";
 import { useEffect, useState } from "react";
 
@@ -69,7 +68,7 @@ export default function GuestLayout() {
           <IconButton onClick={() => navigate('/perfil')}>
             <Avatar src={user?.profilePhoto || undefined}
                     sx={{ width: 32, height: 32, bgcolor: 'secondary.light' }}>
-              {currentUser.name[0]}
+              {user?.name?.[0]}
             </Avatar>
           </IconButton>
         </Toolbar>
