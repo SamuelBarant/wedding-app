@@ -10,7 +10,7 @@ api/node_modules/
 .gradle/
 .kotlin
 
-data/
+/data/
 
 .idea/
 *.iml
