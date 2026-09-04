@@ -46,8 +46,9 @@ services:
       dockerfile: Dockerfile
       args:
         # Para pruebas locales con todo dockerizado. En Cloudflare Pages
-        # esta variable se configura aparte, en el panel de CF (ver notas abajo).
+        # estas variables se configuran aparte, en el panel de CF (ver notas abajo).
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        VITE_ADMIN_PASSWORD: ${VITE_ADMIN_PASSWORD:-admin}
     container_name: wedding-frontend
     restart: unless-stopped
     depends_on:

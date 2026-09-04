@@ -11,9 +11,12 @@ RUN npm ci
 COPY . .
 
 # Vite incrusta las variables VITE_* en el bundle DURANTE el build,
-# no en runtime. Por eso hace falta pasarla como build arg.
+# no en runtime. Por eso hace falta pasarlas como build arg.
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
+
+ARG VITE_ADMIN_PASSWORD
+ENV VITE_ADMIN_PASSWORD=$VITE_ADMIN_PASSWORD
 
 RUN npm run build
 
