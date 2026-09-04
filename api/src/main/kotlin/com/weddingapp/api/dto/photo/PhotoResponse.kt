@@ -1,7 +1,7 @@
 package com.weddingapp.api.dto.photo
 
 import com.weddingapp.api.entity.Photo
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.UUID
 
 data class PhotoResponse(
@@ -12,7 +12,7 @@ data class PhotoResponse(
     val contentType: String,
     val fileSize: Long,
     val caption: String?,
-    val createdAt: LocalDateTime,
+    val createdAt: Instant,
     val url: String
 ) {
 
