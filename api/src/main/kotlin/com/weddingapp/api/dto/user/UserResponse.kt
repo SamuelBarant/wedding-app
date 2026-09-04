@@ -13,13 +13,13 @@ data class UserResponse(
 ) {
     companion object {
 
-        fun from(user: User, baseUrl: String): UserResponse {
-
-            val profilePhotoUrl = if (user.profilePhotoPath != null) {
-                "$baseUrl/api/users/${user.id}/photo"
-            } else {
-                null
-            }
+        /**
+         * @param profilePhotoUrl URL directa de R2 (ya resuelta vía
+         *   R2Storage.getUrl), no la ruta interna de la API. Así el
+         *   frontend puede usarla tal cual en un <img src>, igual que
+         *   con PhotoResponse.url.
+         */
+        fun from(user: User, profilePhotoUrl: String?): UserResponse {
 
             return UserResponse(
                 id = user.id!!,

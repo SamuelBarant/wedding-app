@@ -4,7 +4,6 @@ import com.weddingapp.api.dto.user.CreateUserRequest
 import com.weddingapp.api.dto.user.UpdateUserRequest
 import com.weddingapp.api.dto.user.UserResponse
 import com.weddingapp.api.service.UserService
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -21,14 +20,12 @@ class UserController(
 
     @GetMapping("/{id}")
     fun getUser(
-        @PathVariable id: UUID,
-        request: HttpServletRequest
+        @PathVariable id: UUID
     ): ResponseEntity<UserResponse> {
 
         return ResponseEntity.ok(
             userService.getUserById(
-                id = id,
-                baseUrl = getBaseUrl(request)
+                id = id
             )
         )
     }
@@ -36,15 +33,13 @@ class UserController(
     @PutMapping("/{id}")
     fun updateUser(
         @PathVariable id: UUID,
-        @Valid @RequestBody request: UpdateUserRequest,
-        httpRequest: HttpServletRequest
+        @Valid @RequestBody request: UpdateUserRequest
     ): ResponseEntity<UserResponse> {
 
         return ResponseEntity.ok(
             userService.updateUser(
                 id = id,
-                name = request.name,
-                baseUrl = getBaseUrl(httpRequest)
+                name = request.name
             )
         )
     }
@@ -79,15 +74,13 @@ class UserController(
     )
     fun uploadProfilePhoto(
         @PathVariable id: UUID,
-        @RequestParam photo: MultipartFile,
-        request: HttpServletRequest
+        @RequestParam photo: MultipartFile
     ): ResponseEntity<UserResponse> {
 
         return ResponseEntity.ok(
             userService.updateProfilePhoto(
                 id = id,
-                photo = photo,
-                baseUrl = getBaseUrl(request)
+                photo = photo
             )
         )
     }
@@ -106,11 +99,5 @@ class UserController(
         return ResponseEntity
             .ok()
             .body(url)
-    }
-
-    private fun getBaseUrl(
-        request: HttpServletRequest
-    ): String {
-        return "${request.scheme}://${request.serverName}:${request.serverPort}"
     }
 }

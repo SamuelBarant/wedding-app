@@ -29,8 +29,7 @@ class UserService(
     }
 
     fun getUserById(
-        id: UUID,
-        baseUrl: String
+        id: UUID
     ): UserResponse {
 
         val user = userRepository
@@ -43,15 +42,14 @@ class UserService(
 
         return UserResponse.from(
             user,
-            baseUrl
+            profilePhotoUrl(user)
         )
     }
 
     @Transactional
     fun updateUser(
         id: UUID,
-        name: String,
-        baseUrl: String
+        name: String
     ): UserResponse {
 
         val user = userRepository
@@ -69,15 +67,14 @@ class UserService(
 
         return UserResponse.from(
             savedUser,
-            baseUrl
+            profilePhotoUrl(savedUser)
         )
     }
 
     @Transactional
     fun updateProfilePhoto(
         id: UUID,
-        photo: MultipartFile,
-        baseUrl: String
+        photo: MultipartFile
     ): UserResponse {
 
         validatePhoto(photo)
@@ -117,7 +114,7 @@ class UserService(
 
             return UserResponse.from(
                 savedUser,
-                baseUrl
+                profilePhotoUrl(savedUser)
             )
 
         } catch (exception: Exception) {
@@ -132,6 +129,15 @@ class UserService(
             )
 
             throw exception
+        }
+    }
+
+    private fun profilePhotoUrl(
+        user: User
+    ): String? {
+
+        return user.profilePhotoPath?.let {
+            fileStorage.getUrl(it)
         }
     }
 
@@ -152,7 +158,7 @@ class UserService(
             return UserLookupResult(
                 user = UserResponse.from(
                     existingUser,
-                    baseUrl = ""
+                    profilePhotoUrl(existingUser)
                 ),
                 created = false
             )
@@ -169,7 +175,7 @@ class UserService(
         return UserLookupResult(
             user = UserResponse.from(
                 savedUser,
-                baseUrl = ""
+                profilePhotoUrl(savedUser)
             ),
             created = true
         )
