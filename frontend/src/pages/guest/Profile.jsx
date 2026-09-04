@@ -8,6 +8,7 @@ import Avatar from '@mui/material/Avatar';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -18,7 +19,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import MaterialSymbol from '../../components/MaterialSymbol';
 import { getUserPhotos } from '../../data/api/photo.js';
-import { getUser, uploadProfilePhoto } from '../../data/api/users.js';
+import { getUser, updateUser, uploadProfilePhoto } from '../../data/api/users.js';
 
 const options = [
     {
@@ -28,7 +29,12 @@ const options = [
     },
     {
         icon: 'edit',
-        label: 'Editar Nombre',
+        label: 'Corregir mi nombre',
+        action: 'rename',
+    },
+    {
+        icon: 'swap_horiz',
+        label: 'Cambiar de usuario',
         to: '/identificacion',
     },
 ];
@@ -48,6 +54,11 @@ export default function Profile() {
 
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [photoDialog, setPhotoDialog] = useState(false);
+
+    const [renameDialog, setRenameDialog] = useState(false);
+    const [renameValue, setRenameValue] = useState('');
+    const [renaming, setRenaming] = useState(false);
+
     const [error, setError] = useState(null);
 
     // Carga los datos del usuario y su número de fotos
@@ -102,6 +113,41 @@ export default function Profile() {
 
         // Permite volver a seleccionar la misma foto
         event.target.value = '';
+    };
+
+    const handleOptionClick = (opt) => {
+        if (opt.action === 'rename') {
+            setRenameValue(user?.name || '');
+            setRenameDialog(true);
+            return;
+        }
+
+        navigate(opt.to);
+    };
+
+    /**
+     * Corrige el nombre de la cuenta actual (PUT), a diferencia de
+     * /identificacion, que cambia de cuenta si el nombre es distinto.
+     */
+    const handleRenameSave = async () => {
+        const trimmedName = renameValue.trim();
+
+        if (!trimmedName) {
+            return;
+        }
+
+        setRenaming(true);
+        setError(null);
+
+        try {
+            const updatedUser = await updateUser(userId, trimmedName);
+            setUser(updatedUser);
+            setRenameDialog(false);
+        } catch (err) {
+            setError(err.message || 'No se pudo actualizar tu nombre');
+        } finally {
+            setRenaming(false);
+        }
     };
 
     const stats = [
@@ -248,7 +294,7 @@ export default function Profile() {
                 {options.map((opt, i) => (
                     <Box
                         key={opt.label}
-                        onClick={() => navigate(opt.to)}
+                        onClick={() => handleOptionClick(opt)}
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -311,6 +357,32 @@ export default function Profile() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setPhotoDialog(false)}>Cancelar</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* DIALOG CORREGIR NOMBRE */}
+            <Dialog open={renameDialog} onClose={() => !renaming && setRenameDialog(false)} fullWidth maxWidth="xs">
+                <DialogTitle sx={{ textAlign: 'center' }}>Corregir mi nombre</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        fullWidth
+                        autoFocus
+                        label="Tu nombre y apellidos"
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        disabled={renaming}
+                        sx={{ mt: 1 }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setRenameDialog(false)} disabled={renaming}>Cancelar</Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleRenameSave}
+                        disabled={renaming || !renameValue.trim()}
+                    >
+                        {renaming ? <CircularProgress size={20} sx={{ color: 'inherit' }} /> : 'Guardar'}
+                    </Button>
                 </DialogActions>
             </Dialog>
 
